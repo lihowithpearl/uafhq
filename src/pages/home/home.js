@@ -25,6 +25,7 @@ const Home = () => {
     const [inputText, setInputText] = useState('');
     const [processedData, setProcessedData] = useState([]);
     const [error, setError] = useState('');
+    const [absentRegulars, setAbsentRegulars] = useState([]);
 
     const handleBackClick = () => {
         console.log("Back clicked");
@@ -39,7 +40,8 @@ const Home = () => {
         try {
             // Call the processText function when the form is submitted
             const reportData = processText(inputText);
-            setProcessedData(reportData);
+            setProcessedData(reportData.categoryData);
+            setAbsentRegulars(reportData.absentRegulars);
             setError('');
         } catch (err) {
             setError('Failed to process the text');
@@ -49,30 +51,58 @@ const Home = () => {
     // Function to process the raw text input and return structured data
     const processText = (text) => {
         const lines = text.split('\n');
-        let data = [];
+        let categoryData = [];
+        let absentRegulars = [];
         let currentCategory = null;
+        let totalStrength = { present: 0, total: 0 };
         let currentMembers = [];
 
         lines.forEach(line => {
-            // Check for category headings (e.g., "C1 + C2 NSF Strength")
+            // Identify categories like "C1 + C2 NSF Strength"
             if (line.match(/^C\d/)) {
                 if (currentCategory) {
-                    data.push({ category: currentCategory, members: currentMembers });
+                    categoryData.push({ 
+                        category: currentCategory,
+                        totalStrength: totalStrength,
+                        members: currentMembers 
+                    });
                 }
                 currentCategory = line.trim();
                 currentMembers = [];
+                totalStrength = { present: 0, total: 0 };
             }
-            // Process member lines (e.g., "LCP Rohan - CS @ MMRC")
+            // Process individual member status
             else if (line.includes('-')) {
-                currentMembers.push({ name: line.split('-')[0].trim(), status: line.split('-')[1]?.trim() });
+                const parts = line.split('-');
+                const name = parts[0].trim();
+                const status = parts[1]?.trim();
+                const isRegular = status?.includes('Reg') || false;
+
+                // Update present and total counts
+                totalStrength.total += 1;
+                if (status && !status.includes('MC') && !status.includes('OFF') && !status.includes('LL')) {
+                    totalStrength.present += 1;
+                }
+
+                // Check if the person is regular and not present
+                if (isRegular && (status.includes('MC') || status.includes('OFF') || status.includes('LL'))) {
+                    absentRegulars.push(name);
+                }
+
+                currentMembers.push({ name, status });
             }
         });
 
+        // Push the last category data
         if (currentCategory) {
-            data.push({ category: currentCategory, members: currentMembers });
+            categoryData.push({ 
+                category: currentCategory,
+                totalStrength: totalStrength,
+                members: currentMembers 
+            });
         }
 
-        return data;
+        return { categoryData, absentRegulars };
     };
 
     return (
@@ -95,6 +125,7 @@ const Home = () => {
                 {processedData.length > 0 && processedData.map((section, index) => (
                     <div key={index}>
                         <h3>{section.category}</h3>
+                        <p><strong>Total Strength: </strong>{section.totalStrength.present}/{section.totalStrength.total}</p>
                         <ul>
                             {section.members.map((member, idx) => (
                                 <li key={idx}>{member.name}: {member.status}</li>
@@ -103,6 +134,15 @@ const Home = () => {
                     </div>
                 ))}
             </div>
+
+            <h2>Absent Regulars:</h2>
+            <ul>
+                {absentRegulars.length > 0 ? (
+                    absentRegulars.map((name, idx) => <li key={idx}>{name}</li>)
+                ) : (
+                    <li>No absent regulars.</li>
+                )}
+            </ul>
         </div>
     );
 };
