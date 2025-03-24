@@ -1,16 +1,16 @@
 {
   "files": {
-    "main.css": "//lihowithpearl.github.io/uaf-hq/static/css/main.f855e6bc.css",
-    "main.js": "//lihowithpearl.github.io/uaf-hq/static/js/main.a04042a3.js",
+    "main.css": "//lihowithpearl.github.io/uaf-hq/static/css/main.378c5a7d.css",
+    "main.js": "//lihowithpearl.github.io/uaf-hq/static/js/main.fa1b5bb5.js",
     "static/js/453.167d4503.chunk.js": "//lihowithpearl.github.io/uaf-hq/static/js/453.167d4503.chunk.js",
-    "static/media/logo.svg": "//lihowithpearl.github.io/uaf-hq/static/media/logo.6ce24c58023cc2f8fd88fe9d219db6c6.svg",
+    "static/media/defaultpfp.png": "//lihowithpearl.github.io/uaf-hq/static/media/defaultpfp.fc04cee99299be115f4f.png",
     "index.html": "//lihowithpearl.github.io/uaf-hq/index.html",
-    "main.f855e6bc.css.map": "//lihowithpearl.github.io/uaf-hq/static/css/main.f855e6bc.css.map",
-    "main.a04042a3.js.map": "//lihowithpearl.github.io/uaf-hq/static/js/main.a04042a3.js.map",
+    "main.378c5a7d.css.map": "//lihowithpearl.github.io/uaf-hq/static/css/main.378c5a7d.css.map",
+    "main.fa1b5bb5.js.map": "//lihowithpearl.github.io/uaf-hq/static/js/main.fa1b5bb5.js.map",
     "453.167d4503.chunk.js.map": "//lihowithpearl.github.io/uaf-hq/static/js/453.167d4503.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.f855e6bc.css",
-    "static/js/main.a04042a3.js"
+    "static/css/main.378c5a7d.css",
+    "static/js/main.fa1b5bb5.js"
   ]
 }
