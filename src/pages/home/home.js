@@ -17,134 +17,149 @@
 // }
 
 // export default Home;
+import React, { useState } from 'react';
 
-import { useState } from 'react';
-import './home.css';
+const AttendanceApp = () => {
+  const [hqData, setHqData] = useState('');
+  const [dcsData, setDcsData] = useState('');
+  const [storageData, setStorageData] = useState('');
+  const [dmsPData, setDmsPData] = useState('');
+  const [result, setResult] = useState('');
 
-const Home = () => {
-    const [inputText, setInputText] = useState('');
-    const [processedData, setProcessedData] = useState([]);
-    const [error, setError] = useState('');
-    const [absentRegulars, setAbsentRegulars] = useState([]);
-
-    const handleBackClick = () => {
-        console.log("Back clicked");
-        // Add navigation if required, e.g., navigate(-1);
+  const processData = () => {
+    const departments = {
+      HQ: hqData,
+      DCS: dcsData,
+      Storage: storageData,
+      DMSP: dmsPData,
     };
 
-    const handleTextChange = (e) => {
-        setInputText(e.target.value);
-    };
+    let output = '';
 
-    const handleSubmit = () => {
-        try {
-            // Call the processText function when the form is submitted
-            const reportData = processText(inputText);
-            setProcessedData(reportData.categoryData);
-            setAbsentRegulars(reportData.absentRegulars);
-            setError('');
-        } catch (err) {
-            setError('Failed to process the text');
+    // Loop through each department and process data
+    Object.keys(departments).forEach((department) => {
+      const data = departments[department];
+      if (data) {
+        let regNotPresent = "";
+        // Extract AM and PM strength
+        const amStrength = (data.match(/AM:\s*(\d+\/\d+)/) || [])[1] || 'N/A';
+        const pmStrength = (data.match(/PM:\s*(\d+\/\d+)/) || [])[1] || 'N/A';
+        if(department == "Storage")
+        {
+            const c1c2Nsf = (data.match(/C1 \+ C2 NSF Strength\s*([\d\/]+)/) && data.split('C2 NSF Strength')[1].split('\n').slice(1).map((line) => {
+                const [name, status] = line.split('-').map(str => str.trim());          
+                if (name && status && !['Present', 'Incoming', 'present'].includes(status)) {
+                    return `${name} - ${status}`;
+                  }
+                  return null;
+                }).filter(Boolean)) || []; // Default to 0 if no match found, or an empty array if no match
+          
+            // C1+C2 Regular strength
+            const c1c2Reg = (data.match(/C1 \+ C2 Reg Strength\s*([\d\/]+)/) && data.split('C2 Reg Strength')[1].split('\n').slice(1).map((line) => {
+                const [name, status] = line.split('-').map(str => str.trim());          
+                if (name && status && !['Present', 'Incoming', 'present'].includes(status)) {
+                    return `${name} - ${status}`;
+                  }
+                  return null;
+                }).filter(Boolean)) || [];
+            // const c1c2Reg = (data.match(/C1 \+ C2 Reg Strength\s*([\d\/]+)/) || [])[1] || 'N/A';
+            // C3+C4 NSF strength
+            const c3c4Nsf = (data.match(/C3 \+ C4 NSF Strength\s*([\d\/]+)/) || [])[1] || 'N/A';
+            // C3+C4 Regular strength
+            const c3c4Reg = (data.match(/C3 \+ C4 Reg Strength\s*([\d\/]+)/) || [])[1] || 'N/A';
+            alert(c1c2Nsf);
+            // Format the output for Storage with specific strength breakdown
+            output += `${department}<br>C1+C2 NSF: ${c1c2Nsf}<br><br>C1+C2 Regular: ${c1c2Reg}<br><br>`;
+            output += `C3+C4 NSF: ${c3c4Nsf}<br><br>C3+C4 Regular: ${c3c4Reg}<br><br>`;
+            alert(output);
         }
-    };
+        else{
+             regNotPresent = (data.match(/Total Reg\s*/) && data.split('Total Reg')[1].split('\n').slice(1).map((line) => {
+          const [name, status] = line.split('-').map(str => str.trim());
+          if (name && status && !['Present', 'Incoming', 'present'].includes(status)) {
+            return `${name} - ${status}`;
+          }
+          return null;
+        }).filter(Boolean)) || [];
 
-    // Function to process the raw text input and return structured data
-    const processText = (text) => {
-        const lines = text.split('\n');
-        let categoryData = [];
-        let absentRegulars = [];
-        let currentCategory = null;
-        let totalStrength = { present: 0, total: 0 };
-        let currentMembers = [];
-
-        lines.forEach(line => {
-            // Identify categories like "C1 + C2 NSF Strength"
-            if (line.match(/^C\d/)) {
-                if (currentCategory) {
-                    categoryData.push({ 
-                        category: currentCategory,
-                        totalStrength: totalStrength,
-                        members: currentMembers 
-                    });
-                }
-                currentCategory = line.trim();
-                currentMembers = [];
-                totalStrength = { present: 0, total: 0 };
-            }
-            // Process individual member status
-            else if (line.includes('-')) {
-                const parts = line.split('-');
-                const name = parts[0].trim();
-                const status = parts[1]?.trim();
-                const isRegular = status?.includes('Reg') || false;
-
-                // Update present and total counts
-                totalStrength.total += 1;
-                if (status && !status.includes('MC') && !status.includes('OFF') && !status.includes('LL')) {
-                    totalStrength.present += 1;
-                }
-
-                // Check if the person is regular and not present
-                if (isRegular && (status.includes('MC') || status.includes('OFF') || status.includes('LL'))) {
-                    absentRegulars.push(name);
-                }
-
-                currentMembers.push({ name, status });
-            }
-        });
-
-        // Push the last category data
-        if (currentCategory) {
-            categoryData.push({ 
-                category: currentCategory,
-                totalStrength: totalStrength,
-                members: currentMembers 
-            });
+        // Format the output for each department
+        output += `${department}<br>AM Strength: ${amStrength}<br>PM Strength: ${pmStrength}<br><br>`;
         }
+        // Extract Regulars/Officers Not Present
+       
 
-        return { categoryData, absentRegulars };
-    };
+        // List Regulars/Officers Not Present
+        if (regNotPresent.length > 0) {
+          output += `Regulars/Officers Not Present:<br>`;
+          regNotPresent.forEach((item, idx) => {
+            output += `${item}<br>`;
+          });
+        } else {
+          output += `No Regulars/Officers Not Present.<br><br>`;
+        }
+      }
+    });
 
-    return (
-        <div className="home">
-            <h1>Attendance Report Processor</h1>
-            <textarea 
-                value={inputText} 
-                onChange={handleTextChange} 
-                placeholder="Paste the raw attendance report here..."
-                rows="20" 
-                cols="100"
-            />
-            <br />
-            <button onClick={handleSubmit}>Process Report</button>
+    setResult(output);
+  };
 
-            {error && <div className="error">{error}</div>}
+  return (
+    <div>
+      <h2>Enter Department Attendance Data</h2>
+      <div>
+        <label>HQ Attendance:</label>
+        <textarea
+          rows="10"
+          cols="50"
+          value={hqData}
+          onChange={(e) => setHqData(e.target.value)}
+          placeholder="Enter HQ Attendance data here"
+        />
+      </div>
+      <div>
+        <label>DCS Attendance:</label>
+        <textarea
+          rows="10"
+          cols="50"
+          value={dcsData}
+          onChange={(e) => setDcsData(e.target.value)}
+          placeholder="Enter DCS Attendance data here"
+        />
+      </div>
+      <div>
+        <label>Storage Attendance:</label>
+        <textarea
+          rows="10"
+          cols="50"
+          value={storageData}
+          onChange={(e) => setStorageData(e.target.value)}
+          placeholder="Enter Storage Attendance data here"
+        />
+      </div>
+      <div>
+        <label>DMSP Attendance:</label>
+        <textarea
+          rows="10"
+          cols="50"
+          value={dmsPData}
+          onChange={(e) => setDmsPData(e.target.value)}
+          placeholder="Enter DMSP Attendance data here"
+        />
+      </div>
 
-            <h2>Processed Report:</h2>
-            <div>
-                {processedData.length > 0 && processedData.map((section, index) => (
-                    <div key={index}>
-                        <h3>{section.category}</h3>
-                        <p><strong>Total Strength: </strong>{section.totalStrength.present}/{section.totalStrength.total}</p>
-                        <ul>
-                            {section.members.map((member, idx) => (
-                                <li key={idx}>{member.name}: {member.status}</li>
-                            ))}
-                        </ul>
-                    </div>
-                ))}
-            </div>
+      <button onClick={processData}>Process Data</button>
 
-            <h2>Absent Regulars:</h2>
-            <ul>
-                {absentRegulars.length > 0 ? (
-                    absentRegulars.map((name, idx) => <li key={idx}>{name}</li>)
-                ) : (
-                    <li>No absent regulars.</li>
-                )}
-            </ul>
-        </div>
-    );
+      <div dangerouslySetInnerHTML={{ __html: result }} />
+    </div>
+  );
 };
 
-export default Home;
+export default AttendanceApp;
+
+
+
+
+
+
+
+
