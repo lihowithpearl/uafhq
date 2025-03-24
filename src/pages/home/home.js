@@ -45,32 +45,81 @@ const AttendanceApp = () => {
         const amStrength = (data.match(/AM:\s*(\d+\/\d+)/) || [])[1] || 'N/A';
         const pmStrength = (data.match(/PM:\s*(\d+\/\d+)/) || [])[1] || 'N/A';
         if(department == "Storage")
-        {
-            const c1c2Nsf = (data.match(/C1 \+ C2 NSF Strength\s*([\d\/]+)/) && data.split('C2 NSF Strength')[1].split('\n').slice(1).map((line) => {
-                const [name, status] = line.split('-').map(str => str.trim());          
-                if (name && status && !['Present', 'Incoming', 'present'].includes(status)) {
-                    return `${name} - ${status}`;
-                  }
-                  return null;
-                }).filter(Boolean)) || []; // Default to 0 if no match found, or an empty array if no match
-          
-            // C1+C2 Regular strength
-            const c1c2Reg = (data.match(/C1 \+ C2 Reg Strength\s*([\d\/]+)/) && data.split('C2 Reg Strength')[1].split('\n').slice(1).map((line) => {
-                const [name, status] = line.split('-').map(str => str.trim());          
-                if (name && status && !['Present', 'Incoming', 'present'].includes(status)) {
-                    return `${name} - ${status}`;
-                  }
-                  return null;
-                }).filter(Boolean)) || [];
-             // const c1c2Reg = (data.match(/C1 \+ C2 Reg Strength\s*([\d\/]+)/) || [])[1] || 'N/A';
-            // C3+C4 NSF strength
-            const c3c4Nsf = (data.match(/C3 \+ C4 NSF Strength\s*([\d\/]+)/) || [])[1] || 'N/A';
+        {   
+           let c1c2Nsf = 0;
+          if (data.match(/C1 \+ C2 NSF Strength\s*([\d\/]+)/)) {
+             c1c2Nsf = data.split('C2 NSF Strength')[1]
+                  .split('\n')
+                  .slice(1)
+                  .reduce((total, line) => {
+                      if (line != "") {
+                          const [name, status] = line.split('-').map(str => str.trim());
+                          if (name && status && ['Present', 'Incoming', 'present'].includes(status)) {
+                            return total + 1;
+                          }
+                      }
+                        return total;
+                      
+                  },0); // Start the counter from 0
+          }
+
+          let c1c2Reg = 0;
+          if (data.match(/C1 \+ C2 Reg Strength\s*([\d\/]+)/)) {
+            c1c2Reg = data.split('C2 Reg Strength')[1]
+                  .split('\n')
+                  .slice(1)
+                  .reduce((total, line) => {
+                      if (line != "") {
+                          const [name, status] = line.split('-').map(str => str.trim());
+                          if (name && status && ['Present', 'Incoming', 'present'].includes(status)) {
+                            return total + 1;
+                          }
+                      }
+                        return total;
+                      
+                  },0); // Start the counter from 0
+          }
+                 
+            //  const c1c2Reg = (data.match(/C1 \+ C2 Reg Strength\s*([\d\/]+)/) || [])[1] || 'N/A';
+            //C3+C4 NSF strength
+            let c3c4Nsf = 0;
+            if (data.match(/C3 \+ C4 NSF Strength\s*([\d\/]+)/)) {
+              c3c4Nsf = data.split('C4 NSF Strength')[1]
+                    .split('\n')
+                    .slice(1)
+                    .reduce((total, line) => {
+                        if (line != "") {
+                            const [name, status] = line.split('-').map(str => str.trim());
+                            if (name && status && ['Present', 'Incoming', 'present'].includes(status)) {
+                              return total + 1;
+                            }
+                        }
+                          return total;
+                        
+                    },0); // Start the counter from 0
+            }
+            // const c3c4Nsf = (data.match(/C3 \+ C4 NSF Strength\s*([\d\/]+)/) || [])[1] || 'N/A';
             // C3+C4 Regular strength
-            const c3c4Reg = (data.match(/C3 \+ C4 Reg Strength\s*([\d\/]+)/) || [])[1] || 'N/A';
-            alert(c1c2Nsf);
+            let c3c4Reg = 0;
+            if (data.match(/C3 \+ C4 Reg Strength\s*([\d\/]+)/)) {
+              c3c4Reg = data.split('C4 Reg Strength')[1]
+                    .split('\n')
+                    .slice(1)
+                    .reduce((total, line) => {
+                        if (line != "") {
+                            const [name, status] = line.split('-').map(str => str.trim());
+                            if (name && status && ['Present', 'Incoming', 'present'].includes(status)) {
+                              return total + 1;
+                            }
+                        }
+                          return total;
+                        
+                    },0); // Start the counter from 0
+            }
+            // const c3c4Reg = (data.match(/C3 \+ C4 Reg Strength\s*([\d\/]+)/) || [])[1] || 'N/A';
             // Format the output for Storage with specific strength breakdown
-            output += `${department}<br>C1+C2 NSF: ${c1c2Nsf}<br><br>C1+C2 Regular: ${c1c2Reg}<br><br>`;
-            output += `C3+C4 NSF: ${c3c4Nsf}<br><br>C3+C4 Regular: ${c3c4Reg}<br><br>`;
+            output += `${department}<br>C1+C2 NSF: ${c1c2Nsf-c1c2Reg}<br><br>C1+C2 Regular: ${c1c2Reg-c3c4Nsf}<br><br>`;
+            output += `C3+C4 NSF: ${c3c4Nsf-c3c4Reg}<br><br>C3+C4 Regular: ${c3c4Reg}<br><br>`;
             alert(output);
         }
         else{
