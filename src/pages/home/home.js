@@ -80,7 +80,6 @@ const AttendanceApp = () => {
                   },0); // Start the counter from 0
           }
                  
-            //  const c1c2Reg = (data.match(/C1 \+ C2 Reg Strength\s*([\d\/]+)/) || [])[1] || 'N/A';
             //C3+C4 NSF strength
             let c3c4Nsf = 0;
             if (data.match(/C3 \+ C4 NSF Strength\s*([\d\/]+)/)) {
@@ -98,7 +97,6 @@ const AttendanceApp = () => {
                         
                     },0); // Start the counter from 0
             }
-            // const c3c4Nsf = (data.match(/C3 \+ C4 NSF Strength\s*([\d\/]+)/) || [])[1] || 'N/A';
             // C3+C4 Regular strength
             let c3c4Reg = 0;
             if (data.match(/C3 \+ C4 Reg Strength\s*([\d\/]+)/)) {
@@ -116,7 +114,6 @@ const AttendanceApp = () => {
                         
                     },0); // Start the counter from 0
             }
-            // const c3c4Reg = (data.match(/C3 \+ C4 Reg Strength\s*([\d\/]+)/) || [])[1] || 'N/A';
             // Format the output for Storage with specific strength breakdown
             output += `${department}<br>C1+C2 NSF: ${c1c2Nsf-c1c2Reg}<br><br>C1+C2 Regular: ${c1c2Reg-c3c4Nsf}<br><br>`;
             output += `C3+C4 NSF: ${c3c4Nsf-c3c4Reg}<br><br>C3+C4 Regular: ${c3c4Reg}<br><br>`;
