@@ -62,7 +62,7 @@ const AttendanceApp = () => {
                   }
                   return null;
                 }).filter(Boolean)) || [];
-            // const c1c2Reg = (data.match(/C1 \+ C2 Reg Strength\s*([\d\/]+)/) || [])[1] || 'N/A';
+             // const c1c2Reg = (data.match(/C1 \+ C2 Reg Strength\s*([\d\/]+)/) || [])[1] || 'N/A';
             // C3+C4 NSF strength
             const c3c4Nsf = (data.match(/C3 \+ C4 NSF Strength\s*([\d\/]+)/) || [])[1] || 'N/A';
             // C3+C4 Regular strength
