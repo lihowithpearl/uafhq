@@ -25,6 +25,7 @@ const AttendanceApp = () => {
   const [storageData, setStorageData] = useState('');
   const [dmsPData, setDmsPData] = useState('');
   const [result, setResult] = useState('');
+  const [reg,setReg] = useState('');
 
   const processData = () => {
     const departments = {
@@ -35,7 +36,7 @@ const AttendanceApp = () => {
     };
 
     let output = '';
-
+    let NPreg = "";
     // Loop through each department and process data
     Object.keys(departments).forEach((department) => {
       const data = departments[department];
@@ -46,30 +47,44 @@ const AttendanceApp = () => {
         const pmStrength = (data.match(/PM:\s*(\d+\/\d+)/) || [])[1] || 'N/A';
         if(department == "Storage")
         {   
+          regNotPresent = (data.match('Storage Attendance') && data.split('Storage Attendance')[1].split('\n').slice(1).map((line) => {
+            const [name, status] = line.split('-').map(str => str.trim());
+            if  (name && name.match(/ME\d*|LT\d*/)  && status && !['Present', 'Incoming', 'present'].includes(status)
+          ) {
+                alert(line);
+              return `${name} - ${status}`;
+            }
+            return null;
+          }).filter(Boolean)) || [];
+          let c1c2NsfT = 0; // Count for all valid lines
            let c1c2Nsf = 0;
           if (data.match(/C1 \+ C2 NSF Strength\s*([\d\/]+)/)) {
-             c1c2Nsf = data.split('C2 NSF Strength')[1]
-                  .split('\n')
-                  .slice(1)
-                  .reduce((total, line) => {
-                      if (line != "") {
-                          const [name, status] = line.split('-').map(str => str.trim());
-                          if (name && status && ['Present', 'Incoming', 'present'].includes(status)) {
-                            return total + 1;
-                          }
-                      }
-                        return total;
-                      
-                  },0); // Start the counter from 0
-          }
+            c1c2Nsf = data.split('C2 NSF Strength')[1]
+            .split('\n')
+            .slice(1)
+            .reduce((total, line) => {
+                if (line.trim() !== "") {
+                  c1c2NsfT++; // Increment total lines count
+
+                    const [name, status] = line.split('-').map(str => str.trim());
+                    if (name && status && ['Present', 'Incoming', 'present'].includes(status)) {
+                       
+                        return total + 1; // Count for Present/Incoming
+                    }
+                }
+                return total;
+            }, 0); 
+            }
 
           let c1c2Reg = 0;
+          let c1c2RegT = 0;
           if (data.match(/C1 \+ C2 Reg Strength\s*([\d\/]+)/)) {
             c1c2Reg = data.split('C2 Reg Strength')[1]
                   .split('\n')
                   .slice(1)
                   .reduce((total, line) => {
                       if (line != "") {
+                        c1c2RegT++;
                           const [name, status] = line.split('-').map(str => str.trim());
                           if (name && status && ['Present', 'Incoming', 'present'].includes(status)) {
                             return total + 1;
@@ -82,12 +97,15 @@ const AttendanceApp = () => {
                  
             //C3+C4 NSF strength
             let c3c4Nsf = 0;
+            let c3c4NsfT = 0;
+
             if (data.match(/C3 \+ C4 NSF Strength\s*([\d\/]+)/)) {
               c3c4Nsf = data.split('C4 NSF Strength')[1]
                     .split('\n')
                     .slice(1)
                     .reduce((total, line) => {
                         if (line != "") {
+                          c3c4NsfT++;
                             const [name, status] = line.split('-').map(str => str.trim());
                             if (name && status && ['Present', 'Incoming', 'present'].includes(status)) {
                               return total + 1;
@@ -99,12 +117,14 @@ const AttendanceApp = () => {
             }
             // C3+C4 Regular strength
             let c3c4Reg = 0;
+            let c3c4RegT = 0;
             if (data.match(/C3 \+ C4 Reg Strength\s*([\d\/]+)/)) {
               c3c4Reg = data.split('C4 Reg Strength')[1]
                     .split('\n')
                     .slice(1)
                     .reduce((total, line) => {
                         if (line != "") {
+                          c3c4RegT++;
                             const [name, status] = line.split('-').map(str => str.trim());
                             if (name && status && ['Present', 'Incoming', 'present'].includes(status)) {
                               return total + 1;
@@ -115,8 +135,8 @@ const AttendanceApp = () => {
                     },0); // Start the counter from 0
             }
             // Format the output for Storage with specific strength breakdown
-            output += `${department}<br>C1+C2 NSF: ${c1c2Nsf-c1c2Reg}<br><br>C1+C2 Regular: ${c1c2Reg-c3c4Nsf}<br><br>`;
-            output += `C3+C4 NSF: ${c3c4Nsf-c3c4Reg}<br><br>C3+C4 Regular: ${c3c4Reg}<br><br>`;
+            output += `${department}<br>C1+C2 NSF: ${c1c2Nsf-c1c2Reg+1}/${c1c2NsfT-c1c2RegT+1}<br><br>C1+C2 Regular: ${c1c2Reg-c3c4Nsf+1}/${c1c2RegT-c3c4NsfT-1}<br><br>`;
+            output += `C3+C4 NSF: ${c3c4Nsf-c3c4Reg+1}/${c3c4NsfT-c3c4RegT-1}<br><br>C3+C4 Regular: ${c3c4Reg+1}/${c3c4RegT}<br><br>`;
         }
         else{
              regNotPresent = (data.match(/Total Reg\s*/) && data.split('Total Reg')[1].split('\n').slice(1).map((line) => {
@@ -137,15 +157,17 @@ const AttendanceApp = () => {
         if (regNotPresent.length > 0) {
           output += `Regulars/Officers Not Present:<br>`;
           regNotPresent.forEach((item, idx) => {
-            output += `${item}<br>`;
+            NPreg += `${item}<br>`;
           });
-        } else {
-          output += `No Regulars/Officers Not Present.<br><br>`;
         }
+        // } else {
+        //   NPreg += `No Regulars/Officers Not Present.<br><br>`;
+        // }
       }
     });
 
-    setResult(output);
+    setResult(output+NPreg);
+    setReg(NPreg);
   };
 
   return (
