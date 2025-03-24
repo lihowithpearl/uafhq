@@ -53,7 +53,7 @@ const AttendanceApp = () => {
                   }
                   return null;
                 }).filter(Boolean)) || []; // Default to 0 if no match found, or an empty array if no match
-          
+          //try to use if (name != "")
             // C1+C2 Regular strength
             const c1c2Reg = (data.match(/C1 \+ C2 Reg Strength\s*([\d\/]+)/) && data.split('C2 Reg Strength')[1].split('\n').slice(1).map((line) => {
                 const [name, status] = line.split('-').map(str => str.trim());          
