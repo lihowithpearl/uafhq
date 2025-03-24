@@ -120,7 +120,6 @@ const AttendanceApp = () => {
             // Format the output for Storage with specific strength breakdown
             output += `${department}<br>C1+C2 NSF: ${c1c2Nsf-c1c2Reg}<br><br>C1+C2 Regular: ${c1c2Reg-c3c4Nsf}<br><br>`;
             output += `C3+C4 NSF: ${c3c4Nsf-c3c4Reg}<br><br>C3+C4 Regular: ${c3c4Reg}<br><br>`;
-            alert(output);
         }
         else{
              regNotPresent = (data.match(/Total Reg\s*/) && data.split('Total Reg')[1].split('\n').slice(1).map((line) => {
