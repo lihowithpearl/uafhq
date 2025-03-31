@@ -41,7 +41,7 @@ const AttendanceApp = () => {
     Object.keys(departments).forEach((department) => {
       const data = departments[department];
       if (data) {
-        let regNotPresent = "";
+        let regNotPresent = [];
         // Extract AM and PM strength
         const amStrength = data.match(/AM:\s*(.+)/)[1] || 'N/A';
         const pmStrength = data.match(/PM:\s*(.+)/)[1] || 'N/A';
@@ -139,14 +139,23 @@ const AttendanceApp = () => {
             output += `C3+C4 NSF: ${c3c4Nsf-c3c4Reg+1}/${c3c4NsfT-c3c4RegT-1}<br><br>C3+C4 Regular: ${c3c4Reg+1}/${c3c4RegT}<br><br>`;
         }
         else{
-             regNotPresent = (data.match(/Total Reg\s*/) && data.split('Total Reg')[1].split('\n').slice(1).map((line) => {
-          const [name, status] = line.split('-').map(str => str.trim());
-          if (name && status && !['Present', 'Incoming', 'present'].includes(status) && !status.match(/Incoming/i) ) {
-            return `${name} - ${status}`;
-          }
-          return null;
-        }).filter(Boolean)) || [];
-
+          let lines = data.match(/Total Reg\s*/) 
+          ? data.split('Total Reg')[1].split('\n').slice(1) 
+          : [];
+        
+        for (let line of lines) {
+            const [name, status] = line.split('-').map(str => str.trim());
+        
+            if (name.length === 0) {
+                alert("Stopping because name is empty.");
+                break; // Exit loop when name is empty
+            }
+        
+            if (status && !['Present', 'Incoming', 'present'].includes(status) && !status.match(/Incoming/i)) {
+                regNotPresent.push(`${name} - ${status}`);
+            }
+        }
+        
         // Format the output for each department
         output += `${department}<br>AM Strength: ${amStrength}<br>PM Strength: ${pmStrength}<br><br>`;
         }
