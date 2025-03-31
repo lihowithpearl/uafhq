@@ -43,8 +43,8 @@ const AttendanceApp = () => {
       if (data) {
         let regNotPresent = "";
         // Extract AM and PM strength
-        const amStrength = (data.match(/AM:\s*(\d+\/\d+)/) || [])[1] || 'N/A';
-        const pmStrength = (data.match(/PM:\s*(\d+\/\d+)/) || [])[1] || 'N/A';
+        const amStrength = data.match(/AM:\s*(.+)/)[1] || 'N/A';
+        const pmStrength = data.match(/PM:\s*(.+)/)[1] || 'N/A';
         if(department == "Storage")
         {   
           regNotPresent = (data.match('Storage Attendance') && data.split('Storage Attendance')[1].split('\n').slice(1).map((line) => {
@@ -141,7 +141,7 @@ const AttendanceApp = () => {
         else{
              regNotPresent = (data.match(/Total Reg\s*/) && data.split('Total Reg')[1].split('\n').slice(1).map((line) => {
           const [name, status] = line.split('-').map(str => str.trim());
-          if (name && status && !['Present', 'Incoming', 'present'].includes(status)) {
+          if (name && status && !['Present', 'Incoming', 'present'].includes(status) && !status.match(/Incoming/i) ) {
             return `${name} - ${status}`;
           }
           return null;
