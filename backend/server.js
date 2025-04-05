@@ -55,7 +55,21 @@ app.get('/user',async (req,res) => {
     }
 });
 
-
+app.get("/user/:name/:password",async(req,res)=>{
+    try{
+        const user = await User.findOne({
+            name:req.params.name,
+            password:req.params.password
+        });
+        if(!user){
+            return res.status(404).json({message:"Item not found"});
+        }else{
+            res.json(user);
+        }
+    }catch(e){
+        return res.status(505).json({message:e.message});
+    }
+});
 
 //SETTING UP 
 // // const [const1] = require('./model/[themodel]');
