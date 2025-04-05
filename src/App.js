@@ -1,6 +1,6 @@
 import './App.css';
 import Home from './pages/home/home.js';
-// import Youtube from './pages/youtube/youtube.js';
+import Login from './pages/login/login.js';
 import Nav from './sematics/navigationbar/nav.js';
 import {Routes,Route,BrowserRouter as Router, useNavigate} from 'react-router-dom';
 
@@ -13,7 +13,7 @@ function App() {
       <Nav></Nav>
         <Routes>
           <Route path="/" element={<Home/>}/>  
-          {/* <Route path="/youtube" element={<Youtube/>}/>   */}
+          <Route path="/login" element={<Login/>}/>  
         </Routes>
               
     

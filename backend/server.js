@@ -46,6 +46,7 @@ app.post('/user',async (req,res)=>{
 app.get('/user',async (req,res) => {
     try{
         const user = await User.find();
+        console.log('user' + user);
         res.json(user);
     }catch (err) {
         res.status(500).json({
@@ -53,6 +54,7 @@ app.get('/user',async (req,res) => {
         });
     }
 });
+
 
 
 //SETTING UP 

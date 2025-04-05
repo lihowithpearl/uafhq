@@ -9,9 +9,9 @@ const Nav = () =>{
     const navigateHome = () =>{
         navigate("/");
     }
-    // const navigateYoutube = () =>{
-    //     navigate("/youtube");
-    // }
+    const navigateLogin = () =>{
+        navigate("/login");
+    }
     return (
         <div id = "navbar">
             <div class="navitem">
@@ -25,7 +25,7 @@ const Nav = () =>{
                     {/* <span onClick={navigateYoutube}>Youtube</span> */}
                 </li>
                 <li>
-                    <span>button 3</span>
+                    <span onClick={navigateLogin}>Login</span>
                 </li>
             </ul>
             <div class="navitem">
