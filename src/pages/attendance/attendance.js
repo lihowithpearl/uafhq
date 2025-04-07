@@ -79,7 +79,27 @@ const Attendance = () => {
     //         })
     //         .catch((error) => console.log(error.message));
     // };
-
+    const [formData, setFormData] = useState({
+        absenceType: '',
+        country: '',
+        dutyOff: '',
+        courseName: '',
+        absenceDuration: '',
+      });
+    
+      const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setFormData({
+          ...formData,
+          [name]: value,
+        });
+      };
+    
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        console.log('Form Data:', formData);
+        alert('Form submitted!');
+      };
     return (
         <div>
             {/* {addItem && (
@@ -120,9 +140,171 @@ const Attendance = () => {
             </div>
 
             {noItem && searchItem && <div className="searchresultmsg">No results for "{searchItem}"</div>}
-
+*/}                
+            Are you going to be present
             <div className="content">
-                {!noItem && searchItem === "" && items.map((item) => (
+                <div className='item'>
+                    Yes
+                </div>
+                <div className='item'>
+                    No
+                </div>
+                <div className="absence-form">
+      <h2>Absence Request Form</h2>
+      <form onSubmit={handleSubmit}>
+        <label>
+          What is the reason for your absence? (Select one)
+          <select
+            name="absenceType"
+            value={formData.absenceType}
+            onChange={handleInputChange}
+            required
+          >
+            <option value="">--Please choose an option--</option>
+            <option value="RSO">RSO (Reserve Service Obligation)</option>
+            <option value="attachedOut">Attached Out</option>
+            <option value="LL">LL (Leave)</option>
+            <option value="OL">OL (Off Leave)</option>
+            <option value="medicalAppt">Medical Appointment</option>
+            <option value="dutyOff">Duty Off</option>
+            <option value="course">Course</option>
+            <option value="other">Other</option>
+          </select>
+        </label>
+
+        {formData.absenceType === 'RSO' && (
+          <div>
+            <label>
+              Country (for RSO):
+              <input
+                type="text"
+                name="country"
+                value={formData.country}
+                onChange={handleInputChange}
+                placeholder="Enter country"
+                required
+              />
+            </label>
+          </div>
+        )}
+
+        {formData.absenceType === 'attachedOut' && (
+          <div>
+            <label>
+              Country (for Attachment):
+              <input
+                type="text"
+                name="country"
+                value={formData.country}
+                onChange={handleInputChange}
+                placeholder="Enter country"
+                required
+              />
+            </label>
+          </div>
+        )}
+
+        {formData.absenceType === 'LL' || formData.absenceType === 'OL' ? (
+          <div>
+            <label>
+              Which country are you going to? (if applicable):
+              <input
+                type="text"
+                name="country"
+                value={formData.country}
+                onChange={handleInputChange}
+                placeholder="Enter country"
+              />
+            </label>
+          </div>
+        ) : null}
+
+        {formData.absenceType === 'medicalAppt' && (
+          <div>
+            <label>
+              Medical Appointment (please specify):
+              <input
+                type="text"
+                name="medicalAppt"
+                value={formData.medicalAppt}
+                onChange={handleInputChange}
+                placeholder="Enter details"
+                required
+              />
+            </label>
+          </div>
+        )}
+
+        {formData.absenceType === 'dutyOff' && (
+          <div>
+            <label>
+              Is it a Half Day or Full Day Duty Off?
+              <select
+                name="dutyOff"
+                value={formData.dutyOff}
+                onChange={handleInputChange}
+                required
+              >
+                <option value="">--Please choose an option--</option>
+                <option value="halfDay">Half Day</option>
+                <option value="fullDay">Full Day</option>
+              </select>
+            </label>
+          </div>
+        )}
+
+        {formData.absenceType === 'course' && (
+          <div>
+            <label>
+              Course Name:
+              <input
+                type="text"
+                name="courseName"
+                value={formData.courseName}
+                onChange={handleInputChange}
+                placeholder="Enter course name"
+                required
+              />
+            </label>
+          </div>
+        )}
+
+        {formData.absenceType !== 'other' && (
+          <div>
+            <label>
+              How long will you be absent? (in days):
+              <input
+                type="number"
+                name="absenceDuration"
+                value={formData.absenceDuration}
+                onChange={handleInputChange}
+                min="1"
+                required
+              />
+            </label>
+          </div>
+        )}
+
+        {formData.absenceType === 'other' && (
+          <div>
+            <label>
+              Please specify the reason:
+              <input
+                type="text"
+                name="otherReason"
+                value={formData.otherReason}
+                onChange={handleInputChange}
+                placeholder="Enter reason"
+                required
+              />
+            </label>
+          </div>
+        )}
+
+        <button type="submit">Submit Request</button>
+      </form>
+    </div>
+                {/* {!noItem && searchItem === "" && items.map((item) => (
                     <div className="item" key={item._id}>
                         <div dangerouslySetInnerHTML={{ __html: item.link }}></div>
                         <div className="description">
@@ -133,9 +315,8 @@ const Attendance = () => {
                             </div>
                         </div>
                     </div>
-                ))}
-            </div> */}
-            Hi u wna rso ?
+                ))} */}
+            </div> 
         </div>
     );
 };
