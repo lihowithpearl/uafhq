@@ -1,6 +1,7 @@
 import './App.css';
 import Home from './pages/home/home.js';
 import Login from './pages/login/login.js';
+import Attendance from './pages/attendance/attendance.js';
 import Nav from './sematics/navigationbar/nav.js';
 import {Routes,Route,BrowserRouter as Router, useNavigate} from 'react-router-dom';
 
@@ -10,10 +11,12 @@ function App() {
  console.log(window.location.pathname);
   return (
     <div>
-      <Nav></Nav>
+     
+      <Nav></Nav> 
+      <Login></Login>
         <Routes>
           <Route path="/" element={<Home/>}/>  
-          <Route path="/login" element={<Login/>}/>  
+          <Route path="/attendance" element={<Attendance/>}/>  
         </Routes>
               
     

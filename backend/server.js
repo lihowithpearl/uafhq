@@ -1,17 +1,23 @@
 const express = require("express");
 const cors = require("cors");
 const mongoose = require('mongoose');
+const cookieParser = require('cookie-parser');
 const app = express();
 const port = 27017; 
 
-app.use(cors());
+app.use(cookieParser('U@FS3CUR1TYK3Y'));
+app.use(cors({
+    origin: 'http://localhost:3000', // your frontend port
+    credentials: true,
+  }));
 app.use(express.json());
 
 
-mongoose.connect('mongodb://127.0.0.1:27017/mydb',{
-    useNewURLParser:true,
+mongoose.connect('mongodb://127.0.0.1:27017/mydb', {
+    useNewUrlParser: true,
     useUnifiedTopology: true,
-});
+  }).then(() => console.log("MongoDB Connected"))
+    .catch((err) => console.error(err));
 
 const db = mongoose.connection;
 db.on('error', (error) => console.error(error));
@@ -55,22 +61,62 @@ app.get('/user',async (req,res) => {
     }
 });
 
-app.get("/user/:name/:password",async(req,res)=>{
-    try{
-        const user = await User.findOne({
-            name:req.params.name,
-            password:req.params.password
-        });
-        if(!user){
-            return res.status(404).json({message:"Item not found"});
-        }else{
-            res.json(user);
+// app.get("/user/:name/:password",async(req,res)=>{
+//     try{
+//         const user = await User.findOne({
+//             name:req.params.name,
+//             password:req.params.password
+//         });
+//         if(!user){
+//             return res.status(404).json({message:"Item not found"});
+//         }else{
+//             res.json(user);
+//         }
+//     }catch(e){
+//         return res.status(505).json({message:e.message});
+//     }
+// });
+// Login route (cookie set here)
+app.post("/login", async (req, res) => {
+    const { name, password } = req.body;
+    console.log(req.body);
+    console.log(name + password);
+    try {
+        const user = await User.findOne({ name, password });
+        if (!user) {
+            return res.status(404).json({ message: "Invalid credentials" });
         }
-    }catch(e){
-        return res.status(505).json({message:e.message});
+        console.log(user);
+        // Set secure signed cookie
+        res.cookie("user", user.username, {
+            httpOnly: true,
+            signed: true,
+            sameSite: 'lax',
+            secure: false, // change to true if using HTTPS
+            maxAge: 24 * 60 * 60 * 1000, // 1 day
+        });
+
+        res.json({ name: user.name, department: user.department });
+    } catch (e) {
+        res.status(500).json({ message: e.message });
     }
 });
 
+// Check current logged-in user
+app.get("/me", (req, res) => {
+    const username = req.signedCookies.user;
+    if (!username) {
+        return res.status(401).json({ message: "Not logged in" });
+    }
+
+    res.json({ username });
+});
+
+// Logout route (clear cookie)
+app.post("/logout", (req, res) => {
+    res.clearCookie("user");
+    res.json({ message: "Logged out successfully" });
+});
 //SETTING UP 
 // // const [const1] = require('./model/[themodel]');
 

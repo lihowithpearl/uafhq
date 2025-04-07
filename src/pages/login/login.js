@@ -15,27 +15,34 @@ const Login = () => {
     //             console.error('There was an error fetching the items', error);
     //         });
     // }, []);
+  
     const handleLogin = (e) => {
         e.preventDefault();
-        try{
-                  axios.get(`http://localhost:27017/user/${LUser.name}/${LUser.password}`)
-                .then((response) => {
-                if(!response.data){
-                     alert("no account found with the name: " + LUser );
-                }
-                else{
-                    setUser(response.data);
-                }
-        })  
-        }catch(error)
-        {
-            console.log(error);
-            alert("server error");
-        }
-
-    }
-
-    
+        axios.post('http://localhost:27017/login', {
+          name: LUser.name,
+          password: LUser.password
+        })
+        .then((response) => {
+          alert('Login successful');
+          console.log(response.data.name);
+          // Optionally store user data in state
+          setUser({ name: response.data.name,department: response.data.department });
+        })
+        .catch((error) => {
+          if (error.response && error.response.status === 404) {
+            alert("Invalid username or password");
+          } else {
+            console.error("Login error:", error);
+            alert("Server error. Try again later.");
+          }
+        });
+      };
+      const handleLogout = () => {
+        // Clear the session cookie
+        document.cookie = "user=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+        alert('You have logged out successfully');
+        setUser({ name: "", department: "" });
+    };
     const handleLoginChange = (e) => {
         setLUser({ ...LUser, [e.target.name]: e.target.value });
     };
@@ -43,7 +50,7 @@ const Login = () => {
 
     return (
         <div>
-            {user.name == ""  &&
+            {user.name == ""  ? (
                 <div className="fullpage">
                     <div className="formpage">
                         <form onSubmit={handleLogin}>
@@ -55,7 +62,13 @@ const Login = () => {
                             <input type="submit" value="Login" className="submit" />
                         </form>
                     </div>
-                </div>
+                </div>)
+                : (
+                    <div className="welcome-page">
+                        <h2>Welcome, {user.name}!</h2>
+                        <button onClick={handleLogout}>Logout</button>
+                    </div>
+                )
             }
 
         </div>
