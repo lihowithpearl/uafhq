@@ -96,7 +96,7 @@ app.post("/login", async (req, res) => {
             maxAge: 24 * 60 * 60 * 1000, // 1 day
         });
 
-        res.json({ name: user.name, department: user.department });
+        res.json({ userID:user._id,name: user.name, department: user.department });
     } catch (e) {
         res.status(500).json({ message: e.message });
     }
@@ -117,6 +117,41 @@ app.post("/logout", (req, res) => {
     res.clearCookie("user");
     res.json({ message: "Logged out successfully" });
 });
+
+
+
+const Attendance = require('./model/attendance');
+
+app.post('/attendance', async (req, res) => {
+    const { userID, status, department, absenceType, country, location, dutyOff, courseName, absenceDuration, date } = req.body;
+    console.log(req.body);
+    // Validate required fields
+    if (!status || !date || !userID) {
+        return res.status(400).json({ message: 'A server error has occured' });
+    }
+
+    const attendanceEntry = new Attendance({
+        userID,
+        status,
+        department,
+        absenceType,
+        country,
+        location,
+        dutyOff,
+        courseName,
+        absenceDuration,
+        date
+    });
+
+    try {
+        const savedEntry = await attendanceEntry.save();
+        res.status(201).json(savedEntry);
+    } catch (error) {
+        console.log(error.message);
+        res.status(500).json({ message: error.message });
+    }
+});
+
 //SETTING UP 
 // // const [const1] = require('./model/[themodel]');
 

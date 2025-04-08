@@ -1,10 +1,11 @@
 import axios from 'axios';
 import "./login.css";
 import React, { useState, useEffect } from 'react';
+import Cookies from 'js-cookie'; 
 
 const Login = () => {
      const [LUser, setLUser] = useState({name:"",password:""});
-     const [user, setUser] = useState({name:"", department:''})
+     const [user, setUser] = useState({userID:"",name:"", department:''})
 
     // useEffect(() => {
     //     axios.get('http://localhost:27017/user')
@@ -26,7 +27,10 @@ const Login = () => {
           alert('Login successful');
           console.log(response.data.name);
           // Optionally store user data in state
-          setUser({ name: response.data.name,department: response.data.department });
+          setUser({userID:response.userID,  name: response.data.name,department: response.data.department });
+          Cookies.set('userID', response.data.userID, { expires: 0.5 });
+          Cookies.set('department', response.data.department, { expires: 0.5 });
+
         })
         .catch((error) => {
           if (error.response && error.response.status === 404) {
@@ -41,7 +45,8 @@ const Login = () => {
         // Clear the session cookie
         document.cookie = "user=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
         alert('You have logged out successfully');
-        setUser({ name: "", department: "" });
+        setUser({ userID:"", name: "", department: "" });
+        Cookies.remove('userID');
     };
     const handleLoginChange = (e) => {
         setLUser({ ...LUser, [e.target.name]: e.target.value });
