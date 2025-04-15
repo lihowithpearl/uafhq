@@ -5,7 +5,7 @@ import "../login/login";
 import Cookies from 'js-cookie'; 
 
 const Attendance = () => {
-  
+  const [yesno, setYesNo] = useState('yes')
     // const [items, setItems] = useState([]);
     // let [addItem, setAddItem] = useState(false);
     // let [editItem, setEditItem] = useState(false);
@@ -105,10 +105,7 @@ const Attendance = () => {
           ...formData,
           [name]: value,
         });
-        // if(value  === "Present")
-        // {
-        //  handleSubmit(e);
-        // }
+        setYesNo("no");
       };
     
       const handleSubmit = () => {
@@ -130,7 +127,8 @@ const Attendance = () => {
       };
     return (
             <div className="content">
-                 Are you going to be present
+                {yesno == "yes" && <div>
+                  Are you going to be present
                 <button className='item' 
                   name="status" 
                   value="Present"
@@ -143,6 +141,8 @@ const Attendance = () => {
                   onClick={handleInputChange}>
                     No
                 </button>
+                </div>
+                }
                 <div className="absence-form">
                   {formData.status == "Absent" &&    (<div><h2>Absence Request Form</h2>
                   <form onSubmit={handleSubmit}>
