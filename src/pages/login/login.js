@@ -65,6 +65,7 @@ const Login = () => {
                             <input type="text" name="password" value={LUser.password} onChange={(e) => handleLoginChange(e)} required />
                             
                             <input type="submit" value="Login" className="submit" />
+                            <div class="noaccntbtn" onClick={() => alert('hi')} >No account?</div>
                         </form>
                     </div>
                 </div>)
