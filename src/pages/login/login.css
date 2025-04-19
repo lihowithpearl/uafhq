@@ -193,3 +193,11 @@
     text-align: center;
     margin-top: 30px;
 }
+.noaccntbtn {
+    cursor: pointer;
+    display: flex;
+    justify-content: end;
+}
+.noaccntbtn:hover{
+    color:#4158D0;
+}
