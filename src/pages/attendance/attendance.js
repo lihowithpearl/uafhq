@@ -129,9 +129,6 @@ const Attendance = () => {
           <h3>Your existing attendance for today is:</h3>
           {(() => {
             let absenceDetails = '';
-            // const { status, fullDay, amAbsenceType, pmAbsenceType, reason, country, location, dutyOff, courseName, medicalAppt, otherReason, absenceDuration, userID } = formData;
-            // const rank = userID?.rank?.toUpperCase() || '';
-            // const name = userID?.name || '';
             const formattedDate = formData.absenceDuration ? new Date(formData.absenceDuration).toLocaleDateString('en-GB') : '';
             if (formData.status === 'Present') {
               absenceDetails = `${formData.userID.rank} ${formData.userID.name} - Present`;
