@@ -1,0 +1,251 @@
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
+const AttendancePage = () => {
+  const [attendanceList, setAttendanceList] = useState([]);
+  const [filteredDept, setFilteredDept] = useState('All');
+  const departments = ['All', 'HQ', 'Storage', 'DMSP', 'DCS'];
+  const [users, setUsers] = useState([]);
+  useEffect(() => {
+    axios.get('http://localhost:27017/user')  // matches your Express route
+    .then(response => setUsers(response.data))
+    .catch(error => console.error('Error fetching users:', error));
+
+    axios.get('http://localhost:27017/attendance/present-today')
+      .then(response => { setAttendanceList(response.data); })
+      .catch(error => console.error('Error fetching attendance:', error));
+  }, []);
+
+  const getDateString = () => {
+    const today = new Date();
+    return today.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', weekday: 'long' });
+  };
+
+  const isNSF = (rank) => {
+    const regRanks = ['ME1', 'ME2', 'ME3', 'ME4', 'ME5', 'ME6', 'ME7'];
+    return !regRanks.includes(rank?.toUpperCase());
+  };
+
+  const formatDeptAttendance = (deptList) => {
+    const department = deptList[0]?.userID?.department;
+    const regPersonnel = deptList.filter(e => !isNSF(e.userID.rank));
+    const nsfPersonnel = deptList.filter(e => isNSF(e.userID.rank));
+    const orderlyNsfPersonnel = nsfPersonnel.filter(e => e.userID.subdepartment === 'Orderly');
+    const trainingNsfPersonnel = nsfPersonnel.filter(e => e.userID.subdepartment === 'Training');
+    const amCount = deptList.filter(e => e.status === 'Present').length + deptList.filter(e => e.amAbsenceType === 'Present').length;
+    const pmCount = deptList.filter(e => e.status === 'Present').length + deptList.filter(e => e.pmAbsenceType === 'Present').length;
+    const deptUsers = users.filter(u => u.department === department);
+    const totalStrength = deptUsers.length;
+
+    return (
+      <div>
+      <p><strong>Total Strength</strong></p>
+      <p>AM: {amCount}/{totalStrength}</p>
+      <p>PM: {pmCount}/{totalStrength}</p>
+    
+      <p><strong>Total NSF:</strong> {nsfPersonnel.length}</p>
+      <div>
+        <p><strong>Orderly</strong></p>
+        {orderlyNsfPersonnel.map((e, i) => {
+        let absenceDetails;
+
+        if (e.status === 'Present') {
+          absenceDetails = `${e.userID.rank?.toUpperCase()} ${e.userID.name} - Present`;
+        } else if (e.fullDay === 'Full Day') {
+          // Handle full day absences
+          if (e.amAbsenceType === 'AO') {
+            absenceDetails = `${e.userID.rank?.toUpperCase()} ${e.userID.name} - ${e.amAbsenceType} ${e.reason}`;
+          } else if (e.amAbsenceType === 'OL') {
+            absenceDetails = `${e.userID.rank?.toUpperCase()} ${e.userID.name} - ${e.amAbsenceType} ${e.country} til ${new Date(e.absenceDuration).toLocaleDateString('en-GB')}`;
+          } else if (e.amAbsenceType === 'LL') {
+            absenceDetails = `${e.userID.rank?.toUpperCase()} ${e.userID.name} - ${e.amAbsenceType} ${e.country} til ${new Date(e.absenceDuration).toLocaleDateString('en-GB')}`;
+          } else if (e.amAbsenceType === 'RSO') {
+            absenceDetails = `${e.userID.rank?.toUpperCase()} ${e.userID.name} - ${e.amAbsenceType} ${e.reason}`;
+          }else {
+            absenceDetails = `${e.userID.rank?.toUpperCase()} ${e.userID.name} - ${e.amAbsenceType}`;
+          }
+        } else {
+          // Handle AM and PM absences
+          let amDetails = '';
+          if (e.amAbsenceType === 'AO') {
+            amDetails = `${e.userID.rank?.toUpperCase()} ${e.userID.name} - AM ${e.amAbsenceType} ${e.location}`;
+          } else if (e.amAbsenceType === 'OL') {
+            amDetails = `${e.userID.rank?.toUpperCase()} ${e.userID.name} - AM ${e.amAbsenceType} ${e.country} til ${e.absenceDuration}`;
+          } else if (e.amAbsenceType === 'RSO') {
+            absenceDetails = `${e.userID.rank?.toUpperCase()} ${e.userID.name} - ${e.amAbsenceType} ${e.reason}`;
+          }else {
+            amDetails = `${e.userID.rank?.toUpperCase()} ${e.userID.name} - AM ${e.amAbsenceType}`;
+          }
+
+          let pmDetails = '';
+          if (e.pmAbsenceType === 'AO') {
+            pmDetails = `, PM ${e.pmAbsenceType} ${e.reason}`;
+          } else if (e.pmAbsenceType === 'OL') {
+            pmDetails = `, PM ${e.pmAbsenceType} ${e.country} til ${e.absenceDuration}`;
+          } else if (e.amAbsenceType === 'RSO') {
+            pmDetails = `, PM ${e.pmAbsenceType} ${e.reason}`;
+          }else {
+            pmDetails = `, PM ${e.pmAbsenceType}`;
+          }
+
+          absenceDetails = amDetails + pmDetails;
+        }
+
+        return (
+          <p key={i}>{i + 1}. {absenceDetails}</p>
+        );
+      })}
+
+      </div>
+      <div>
+        <p><strong>Training</strong></p>
+        {trainingNsfPersonnel.map((e, i) => {
+        let absenceDetails;
+
+        if (e.status === 'Present') {
+          absenceDetails = `${e.userID.rank?.toUpperCase()} ${e.userID.name} - Present`;
+        } else if (e.fullDay === 'Full Day') {
+          // Handle full day absences
+          if (e.amAbsenceType === 'AO') {
+            absenceDetails = `${e.userID.rank?.toUpperCase()} ${e.userID.name} - ${e.amAbsenceType} ${e.reason}`;
+          } else if (e.amAbsenceType === 'OL') {
+            absenceDetails = `${e.userID.rank?.toUpperCase()} ${e.userID.name} - ${e.amAbsenceType} ${e.country} til ${new Date(e.absenceDuration).toLocaleDateString('en-GB')}`;
+          } else if (e.amAbsenceType === 'LL') {
+            absenceDetails = `${e.userID.rank?.toUpperCase()} ${e.userID.name} - ${e.amAbsenceType} ${e.country} til ${new Date(e.absenceDuration).toLocaleDateString('en-GB')}`;
+          } else if (e.amAbsenceType === 'RSO') {
+            absenceDetails = `${e.userID.rank?.toUpperCase()} ${e.userID.name} - ${e.amAbsenceType} ${e.reason}`;
+          }else {
+            absenceDetails = `${e.userID.rank?.toUpperCase()} ${e.userID.name} - ${e.amAbsenceType}`;
+          }
+        } else {
+          // Handle AM and PM absences
+          let amDetails = '';
+          if (e.amAbsenceType === 'AO') {
+            amDetails = `${e.userID.rank?.toUpperCase()} ${e.userID.name} - AM ${e.amAbsenceType} ${e.location}`;
+          } else if (e.amAbsenceType === 'OL') {
+            amDetails = `${e.userID.rank?.toUpperCase()} ${e.userID.name} - AM ${e.amAbsenceType} ${e.country} til ${e.absenceDuration}`;
+          } else if (e.amAbsenceType === 'RSO') {
+            absenceDetails = `${e.userID.rank?.toUpperCase()} ${e.userID.name} - ${e.amAbsenceType} ${e.reason}`;
+          }else {
+            amDetails = `${e.userID.rank?.toUpperCase()} ${e.userID.name} - AM ${e.amAbsenceType}`;
+          }
+
+          let pmDetails = '';
+          if (e.pmAbsenceType === 'AO') {
+            pmDetails = `, PM ${e.pmAbsenceType} ${e.reason}`;
+          } else if (e.pmAbsenceType === 'OL') {
+            pmDetails = `, PM ${e.pmAbsenceType} ${e.country} til ${e.absenceDuration}`;
+          } else if (e.amAbsenceType === 'RSO') {
+            pmDetails = `, PM ${e.pmAbsenceType} ${e.reason}`;
+          }else {
+            pmDetails = `, PM ${e.pmAbsenceType}`;
+          }
+
+          absenceDetails = amDetails + pmDetails;
+        }
+
+        return (
+          <p key={i}>{i + 1}. {absenceDetails}</p>
+        );
+      })}
+
+      </div>
+      <div>
+        <p><strong>Total Reg:</strong> {regPersonnel.length}</p>
+        {regPersonnel.map((e, i) => {
+          let absenceDetails;
+
+          if (e.status === 'Present') {
+            absenceDetails = `${e.userID.rank?.toUpperCase()} ${e.userID.name} - Present`;
+          } 
+          else{
+            if (e.fullDay === 'Full Day') {
+              // Handle full day absences for regular personnel
+              if (e.amAbsenceType === 'AO') {
+                absenceDetails = `${e.userID.rank?.toUpperCase()} ${e.userID.name} - ${e.amAbsenceType} ${e.location}`;
+              } else if (e.amAbsenceType === 'OL' || e.amAbsenceType === "LL") {
+                absenceDetails = `${e.userID.rank?.toUpperCase()} ${e.userID.name} - ${e.amAbsenceType} ${e.country} til ${e.absenceDuration}`;
+              } else if (e.amAbsenceType === 'RSO') {
+                absenceDetails = `${e.userID.rank?.toUpperCase()} ${e.userID.name} - ${e.amAbsenceType} ${e.reason}`;
+              } else {
+                absenceDetails = `${e.userID.rank?.toUpperCase()} ${e.userID.name} - ${e.amAbsenceType}`;
+              }
+            } else {
+              // Handle AM and PM absences for regular personnel
+              let amDetails = '';
+              if (e.amAbsenceType === 'AO') {
+                amDetails = `${e.userID.rank?.toUpperCase()} ${e.userID.name} - AM ${e.amAbsenceType} ${e.location}`;
+              } else if (e.amAbsenceType === 'OL' || e.amAbsenceType === "LL") {
+                amDetails = `${e.userID.rank?.toUpperCase()} ${e.userID.name} - AM ${e.amAbsenceType} ${e.country} til ${e.absenceDuration}`;
+              } else if (e.amAbsenceType === 'RSO') {
+                absenceDetails = `${e.userID.rank?.toUpperCase()} ${e.userID.name} - ${e.amAbsenceType} ${e.reason}`;
+              } else {
+                amDetails = `${e.userID.rank?.toUpperCase()} ${e.userID.name} - AM ${e.amAbsenceType}`;
+              }
+
+              let pmDetails = '';
+              if (e.pmAbsenceType === 'AO') {
+                pmDetails = `, PM ${e.pmAbsenceType} ${e.location}`;
+              } else if (e.pmAbsenceType === 'OL' || e.pmAbsenceType === "LL") {
+                pmDetails = `, PM ${e.pmAbsenceType} ${e.country} til ${e.absenceDuration}`;
+              } else if (e.pmAbsenceType === 'RSO') {
+                pmDetails = `, PM ${e.pmAbsenceType} ${e.reason}`;
+              } else {
+                pmDetails = `, PM ${e.pmAbsenceType}`;
+              }
+
+              absenceDetails = amDetails + pmDetails;
+            }
+          }
+          return (
+            <p key={i}>{i + 1}. {absenceDetails}</p>
+          );
+        })}
+      </div>
+    </div>
+    
+    );
+  };
+
+  const groupByDepartment = () => {
+    return departments.filter(d => d !== 'All').map(dept => {
+      const deptList = attendanceList.filter(entry => entry.userID.department === dept);
+      return (
+        <div key={dept} className="department-block">
+          <h3>{dept} Attendance for {getDateString()}</h3>
+          {formatDeptAttendance(deptList)}
+        </div>
+      );
+    });
+  };
+
+  const filteredList = filteredDept === 'All'
+    ? attendanceList
+    : attendanceList.filter(entry => entry.userID.department === filteredDept);
+
+  return (
+    <div>
+      <div className="filter">
+        <label>Filter by Department: </label>
+        <select value={filteredDept} onChange={e => setFilteredDept(e.target.value)}>
+          {departments.map(d => (
+            <option key={d} value={d}>{d}</option>
+          ))}
+        </select>
+      </div>
+
+      <div className="content">
+        {filteredDept === 'All' ? (
+          groupByDepartment()
+        ) : (
+          <div>
+            <h3>{filteredDept} Attendance for {getDateString()}</h3>
+            {formatDeptAttendance(filteredList)}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default AttendancePage;

@@ -7,8 +7,10 @@ const Login = () => {
      const [LUser, setLUser] = useState({name:"",password:""});
      const [user, setUser] = useState({userID:"",name:"", department:''})
      const [NUser, setNUser] = useState(false);
-     const ranks = ['pte', 'lcp', 'cpl', '3sg', '2sg', '1sg', '2lt', 'lta', 'cpt', 'me1', 'me2', 'me3', 'me4', 'me5', 'me6', 'me7'];
+     const nsfranks = ['pte', 'lcp', 'cpl', '3sg', '2sg', '1sg', '2lt', 'lta'];
+     const regranks = ['cpt','me1', 'me2', 'me3', 'me4', 'me5', 'me6', 'me7']
      const departments = ['HQ', 'Storage', 'DMSP', 'DCS'];
+     
      const [userData, setUserData] = useState({
       name: '',
       password: '',
@@ -16,7 +18,8 @@ const Login = () => {
       rank: '',
       batch: '',
       phonenumber: '',
-      department: ''
+      department: '',
+      subdepartment:'',
     });
     const handleNewUser = (e) => {
       const { name, value, type, checked } = e.target;
@@ -26,6 +29,7 @@ const Login = () => {
       });
     };
     const handleCreateUser = (e) => {
+      alert(userData);
       axios.post('http://localhost:27017/user', userData)
         .then((res) => {          
           setNUser('false');
@@ -47,11 +51,11 @@ const Login = () => {
         })
         .then((response) => {
           alert('Login successful');
-          console.log(response.data.name);
-          // Optionally store user data in state
-          setUser({userID:response.userID,  name: response.data.name,department: response.data.department });
+          setUser({userID:response.userID,  name: response.data.name,department: response.data.department,subdepartment:response.data.subdepartment });
           Cookies.set('userID', response.data.userID, { expires: 0.5 });
           Cookies.set('department', response.data.department, { expires: 0.5 });
+          Cookies.set('subdepartment', response.data.subdepartment, { expires: 0.5 });
+
 
         })
         .catch((error) => {
@@ -109,7 +113,11 @@ const Login = () => {
                           <label>Rank:
                             <select name="rank" value={userData.rank} onChange={handleNewUser} required>
                               <option value="">--Select Rank--</option>
-                              {ranks.map(rank => <option key={rank} value={rank}>{rank.toUpperCase()}</option>)}
+                              {userData.regular?
+                              (regranks.map(rank => <option key={rank} value={rank}>{rank.toUpperCase()}</option>))
+                              :
+                                (nsfranks.map(rank => <option key={rank} value={rank}>{rank.toUpperCase()}</option>))
+                              }
                             </select>
                           </label>
                           <br />
@@ -131,7 +139,42 @@ const Login = () => {
                             </select>
                           </label>
                           <br />
-                    
+                          {userData.department === "HQ" && userData.regular === false && (
+                            <label>Sub-Department:
+                              <select name="subdepartment" value={userData.subdepartment} onChange={handleNewUser} required>
+                                <option value="">--Select Subdepartment--</option>
+                                <option value="Orderly">Orderly</option>
+                                <option value="Training">Training</option>
+                              </select>
+                            </label>
+                          )}
+                          {userData.department === "DCS" && userData.regular === false && (
+                            <label>Sub-Department:
+                              <select name="subdepartment" value={userData.subdepartment} onChange={handleNewUser} required>
+                                <option value="">--Select Subdepartment--</option>
+                                <option value="Cockpit">Cockpit</option>
+                                <option value="Stocktake">Stocktake</option>
+                              </select>
+                            </label>
+                          )}
+                          {userData.department === "DMSP " && userData.regular === false && (
+                            <label>Sub-Department:
+                              <select name="subdepartment" value={userData.subdepartment} onChange={handleNewUser} required>
+                                <option value="">--Select Subdepartment--</option>
+                                <option value="Infra">Infra</option>
+                                <option value="FM">FM</option>
+                              </select>
+                            </label>
+                          )}
+                          {userData.department === "Storage" && userData.rank !== "2lt" && userData.rank !== "lta" && (
+                            <label>Sub-Department:
+                              <select name="subdepartment" value={userData.subdepartment} onChange={handleNewUser} required>
+                                <option value="">--Select Subdepartment--</option>
+                                <option value="C1 + C2">C1 + C2</option>
+                                <option value="C3 + C4">C3 + C4</option>
+                              </select>
+                            </label>
+                          )}
                           <button type="submit">Submit</button>
                         </form>)}
                         

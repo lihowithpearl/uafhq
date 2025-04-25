@@ -2,6 +2,7 @@ import './App.css';
 import Home from './pages/home/home.js';
 import Login from './pages/login/login.js';
 import Attendance from './pages/attendance/attendance.js';
+import ADS from './pages/list/ads.js'
 import Nav from './sematics/navigationbar/nav.js';
 import {Routes,Route,BrowserRouter as Router, useNavigate} from 'react-router-dom';
 
@@ -17,6 +18,8 @@ function App() {
         <Routes>
           <Route path="/" element={<Attendance/>}/>  
           <Route path="/attendance" element={<Attendance/>}/>  
+          <Route path="/ads" element={<ADS/>}/>  
+
         </Routes>
               
     

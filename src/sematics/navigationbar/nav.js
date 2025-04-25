@@ -12,6 +12,9 @@ const Nav = () =>{
     const navigateAttendance = () =>{
         navigate("/attendance");
     }
+    const navigateADS = () =>{
+        navigate("/ads");
+    }
     return (
         <div id = "navbar">
             <div class="navitem">
@@ -26,6 +29,9 @@ const Nav = () =>{
                 </li>
                 <li>
                     <span onClick={navigateAttendance}>Attendance</span>
+                </li>
+                <li>
+                    <span onClick = {navigateADS}>List</span>
                 </li>
             </ul>
             <div class="navitem">

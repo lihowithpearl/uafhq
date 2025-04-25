@@ -28,6 +28,9 @@ const userSchema = new mongoose.Schema({
     },
     department:{
         type:String
+    },
+    subdepartment:{
+        type:String
     }
     
 });

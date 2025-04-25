@@ -2,8 +2,9 @@ const mongoose = require('mongoose');
 
 const attendanceSchema = new mongoose.Schema({
     userID:{
-        type:String,
-        required:true
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
     },
     status:{
         type:String,
@@ -12,7 +13,11 @@ const attendanceSchema = new mongoose.Schema({
     department:{
         type:String
     },
-    absenceType:{
+    amAbsenceType:{
+        type:String,
+        enum: ["",'RSO', 'OL', 'LL', 'attachedOut', 'medicalAppt', 'dutyOff', 'course', 'others'],
+    }, 
+    pmAbsenceType:{
         type:String,
         enum: ["",'RSO', 'OL', 'LL', 'attachedOut', 'medicalAppt', 'dutyOff', 'course', 'others'],
     },
@@ -29,11 +34,17 @@ const attendanceSchema = new mongoose.Schema({
         type:String
     },
     absenceDuration:{
+        type:Date
+    },
+    fullDay:{
         type:String
     },
     date:{
         type:Date,
         required:true
+    },
+    reason:{
+        type:String
     }
 
     

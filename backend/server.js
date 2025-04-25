@@ -61,7 +61,6 @@ app.post('/user', async (req, res) => {
 app.get('/user',async (req,res) => {
     try{
         const user = await User.find();
-        console.log('user' + user);
         res.json(user);
     }catch (err) {
         res.status(500).json({
@@ -88,14 +87,11 @@ app.get('/user',async (req,res) => {
 // Login route (cookie set here)
 app.post("/login", async (req, res) => {
     const { name, password } = req.body;
-    console.log(req.body);
-    console.log(name + password);
     try {
         const user = await User.findOne({ name, password });
         if (!user) {
             return res.status(404).json({ message: "Invalid credentials" });
         }
-        console.log(user);
         // Set secure signed cookie
         res.cookie("user", user.username, {
             httpOnly: true,
@@ -130,10 +126,40 @@ app.post("/logout", (req, res) => {
 
 
 const Attendance = require('./model/attendance');
-
+app.get('/attendance/present-today', async (req, res) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+  
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+  
+    try {
+        const records = await Attendance.find({
+            date: { $gte: today, $lt: tomorrow }
+          }).populate('userID', 'name department regular rank subdepartment'); // populate name & department only
+      
+          res.json(records);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: 'Error fetching present records' });
+    }
+  });
 app.post('/attendance', async (req, res) => {
-    const { userID, status, department, absenceType, country, location, dutyOff, courseName, absenceDuration, date } = req.body;
-    console.log(req.body);
+    const {         userID,
+        status,
+        department,
+        amAbsenceType,  
+        pmAbsenceType,  
+        country,
+        location,
+        dutyOff,
+        courseName,
+        absenceDuration,
+        fullDay,
+        date,
+        reason } = req.body;
+
+
     // Validate required fields
     if (!status || !date || !userID) {
         return res.status(400).json({ message: 'A server error has occured' });
@@ -143,24 +169,106 @@ app.post('/attendance', async (req, res) => {
         userID,
         status,
         department,
-        absenceType,
+        amAbsenceType,  
+        pmAbsenceType,  
         country,
         location,
         dutyOff,
         courseName,
         absenceDuration,
-        date
+        fullDay,
+        date,
+        reason
+        
     });
 
     try {
         const savedEntry = await attendanceEntry.save();
         res.status(201).json(savedEntry);
     } catch (error) {
-        console.log(error.message);
         res.status(500).json({ message: error.message });
     }
 });
+app.get('/attendance/user/:userId', async (req, res) => {
+    const userId = req.params.userId;
+    const today = new Date();
+    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
 
+    try {
+      const results = await Attendance.find({
+        userID: userId,
+        $or: [
+          { date: {
+            $gte: startOfDay,
+            $lt: endOfDay
+          }}, // Present today
+          {
+            absenceDuration: { $gte: startOfDay } // Still absent today (e.g. OL til today or future)
+          }
+        ]
+      }).populate('userID', 'name department regular rank subdepartment');
+      res.json(results);
+    } catch (err) {
+      console.error('Error fetching user attendance:', err);
+      res.status(500).json({ message: err.message });
+    }
+  });
+  app.put('/attendance/:id', async (req, res) => {
+    const attendanceId = req.params.id;
+    const {
+      userID,
+      status,
+      department,
+      amAbsenceType,
+      pmAbsenceType,
+      country,
+      location,
+      dutyOff,
+      courseName,
+      absenceDuration,
+      fullDay,
+      date,
+      reason
+    } = req.body;
+  
+    // Validate required fields
+    if (!status || !date || !userID) {
+      return res.status(400).json({ message: 'A server error has occurred' });
+    }
+  
+    try {
+      const updatedEntry = await Attendance.findByIdAndUpdate(
+        attendanceId,
+        {
+          userID,
+          status,
+          department,
+          amAbsenceType,
+          pmAbsenceType,
+          country,
+          location,
+          dutyOff,
+          courseName,
+          absenceDuration,
+          fullDay,
+          date,
+          reason
+        },
+        { new: true } // return the updated document
+      );
+  
+      if (!updatedEntry) {
+        return res.status(404).json({ message: 'Attendance record not found' });
+      }
+  
+      res.json(updatedEntry);
+    } catch (error) {
+      console.error('Error updating attendance:', error.message);
+      res.status(500).json({ message: error.message });
+    }
+  });
+  
 //SETTING UP 
 // // const [const1] = require('./model/[themodel]');
 
