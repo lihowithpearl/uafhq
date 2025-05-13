@@ -4,7 +4,7 @@ import axios from 'axios';
 const AttendancePage = () => {
   const [attendanceList, setAttendanceList] = useState([]);
   const [filteredDept, setFilteredDept] = useState('All');
-  const departments = ['All', 'HQ', 'Storage', 'DMSP', 'DCS'];
+  const departments = ['All','ADS', 'HQ', 'Storage', 'DMSP', 'DCS'];
   const [users, setUsers] = useState([]);
   useEffect(() => {
     axios.get('http://localhost:27017/user')  // matches your Express route
@@ -20,7 +20,16 @@ const AttendancePage = () => {
     const today = new Date();
     return today.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', weekday: 'long' });
   };
-
+  const getAmOrPm = () => {
+    const singaporeTime = new Date().toLocaleString("en-US", { timeZone: "Asia/Singapore" });
+    const date = new Date(singaporeTime);
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+  
+    // If time is before 12:30 PM, it's AM; otherwise, PM
+    return (hours < 12 || (hours === 12 && minutes < 30)) ? 'AM' : 'PM';
+  };
+  
   const isNSF = (rank) => {
     const regRanks = ['ME1', 'ME2', 'ME3', 'ME4', 'ME5', 'ME6', 'ME7'];
     return !regRanks.includes(rank?.toUpperCase());
@@ -47,12 +56,20 @@ const AttendancePage = () => {
     const pmCount = deptList.filter(e => e.status === 'Present').length + deptList.filter(e => e.pmAbsenceType === 'Present').length;
     const deptUsers = users.filter(u => u.department === department);
     const totalStrength = deptUsers.length;
+    console.log(filteredDept);
+    console.log(regPersonnel);
 
     return (
       <div>
-      <p><strong>Total Strength</strong></p>
-      <p>AM: {amCount}/{totalStrength}</p>
-      <p>PM: {pmCount}/{totalStrength}</p>
+      {filteredDept !== "ADS" && (
+        <>
+          <p><strong>Total Strength</strong></p>
+          <p>AM: {amCount}/{totalStrength}</p>
+          <p>PM: {pmCount}/{totalStrength}</p>
+        </>
+      )}
+
+     
     
       <p><strong>Total NSF:</strong> {nsfPersonnel.length}</p>
       {dept==="HQ" && (<div>
@@ -690,24 +707,49 @@ const AttendancePage = () => {
           );
         })}
       </div>}
+      {filteredDept==="ADS" && (
+        <div>
+          <div>STG</div>
+          <div>C1 + C2 NSF: {C1C2NsfPersonnel.filter(e => e.userID.amAbsenceType === "").length}/{C1C2NsfPersonnel.length}</div>
+          <div>C1 + C2 Regular: {C1C2RegPersonnel.filter(e => e.userID.amAbsenceType === "").length}/{C1C2RegPersonnel.length}</div>
+          <br/>
+          <div>C3 + C4 NSF: {C3C4NsfPersonnel.filter(e => e.userID.amAbsenceType === "").length}/{C3C4NsfPersonnel.length}</div>
+          <div>C3 + c4 Regular: {C3C4RegPersonnel.filter(e => e.userID.amAbsenceType === "").length}/{C3C4RegPersonnel.length}</div>
+          <br/>
+          <div>DMSP</div>
+          <div>NSF: {InfraNsfPersonnel.filter(e => e.userID.amAbsenceType === "").length + FMNsfPersonnel.filter(e => e.userID.amAbsenceType === "").length}/{InfraNsfPersonnel.length + FMNsfPersonnel.length}</div>
+          <div>Regular: {regPersonnel.filter(e => e.userID.department === "DMSP" && e.userID.amAbsenceType ==="").length}/{regPersonnel.filter(e => e.userID.department === "DMSP").length}</div>
+          <br />
+          <div>DCS</div>
+          <div>NSF: {CockpitNsfPersonnel.filter(e => e.userID.amAbsenceType === "").length + StocktakeNsfPersonnel.filter(e => e.userID.amAbsenceType === "").length}/{CockpitNsfPersonnel.length + StocktakeNsfPersonnel.length}</div>
+          <div>Regular: {regPersonnel.filter(e => e.userID.department === "DCS" && e.userID.amAbsenceType ==="").length}/{regPersonnel.filter(e => e.userID.department === "DCS").length}</div>
+          <br/>
+          <div>DHQ</div>
+          <div>NSF: {OrderlyNsfPersonnel.filter(e => e.amAbsenceType === "").length + TrainingNsfPersonnel.filter(e => e.amAbsenceType === "").length}/{OrderlyNsfPersonnel.length + TrainingNsfPersonnel.length}</div>
+          <div>Regular: {regPersonnel.filter(e => e.userID.department === "HQ" && e.userID.amAbsenceType ==="").length}/{regPersonnel.filter(e => e.userID.department === "HQ").length}</div>
+        </div>
+      )}
     </div>
     
     );
   };
 
   const groupByDepartment = () => {
-    return departments.filter(d => d !== 'All').map(dept => {
+    return departments
+    .filter(d => d !== 'All' && d !== 'ADS') // Exclude 'All' and 'ADS'
+    .map(dept => {
       const deptList = attendanceList.filter(entry => entry.userID.department === dept);
       return (
         <div key={dept} className="department-block">
           <h3>{dept} Attendance for {getDateString()}</h3>
-          {formatDeptAttendance(deptList,dept)}
+          {formatDeptAttendance(deptList, dept)}
         </div>
       );
     });
+  
   };
 
-  const filteredList = filteredDept === 'All'
+  const filteredList = filteredDept === 'All' || filteredDept === "ADS"
     ? attendanceList
     : attendanceList.filter(entry => entry.userID.department === filteredDept);
 
@@ -727,7 +769,11 @@ const AttendancePage = () => {
           groupByDepartment()
         ) : (
           <div>
-            <h3>{filteredDept} Attendance for {getDateString()}</h3>
+            <h3>
+              {filteredDept === 'ADS'
+                ? `${getAmOrPm()} Attendance for ${getDateString()}`
+                : `${filteredDept} Attendance for ${getDateString()}`}
+            </h3>
             {formatDeptAttendance(filteredList)}
           </div>
         )}
