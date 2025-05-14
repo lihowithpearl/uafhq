@@ -34,19 +34,33 @@ const AttendancePage = () => {
     const regRanks = ['ME1', 'ME2', 'ME3', 'ME4', 'ME5', 'ME6', 'ME7'];
     return !regRanks.includes(rank?.toUpperCase());
   };
-
+  const isOfficer = (rank) => {
+    const officerRanks = ['2LT',"LTA"];
+    return officerRanks.includes(rank?.toUpperCase());
+  };
   const formatDeptAttendance = (deptList,dept) => {
     const department = deptList[0]?.userID?.department;
     const regPersonnel = deptList.filter(e => !isNSF(e.userID.rank));
     const nsfPersonnel = deptList.filter(e => isNSF(e.userID.rank));
+    const stgNsfPersonnel = nsfPersonnel.filter(e => !isOfficer(e.userID.rank));
     const OrderlyNsfPersonnel = nsfPersonnel.filter(e => e.userID.subdepartment === 'Orderly');
     const TrainingNsfPersonnel = nsfPersonnel.filter(e => e.userID.subdepartment === 'Training');
     const CockpitNsfPersonnel = nsfPersonnel.filter(e => e.userID.subdepartment === 'Cockpit');
     const StocktakeNsfPersonnel = nsfPersonnel.filter(e => e.userID.subdepartment === 'Stocktake');
     const InfraNsfPersonnel = nsfPersonnel.filter(e => e.userID.subdepartment === 'Infra');
     const FMNsfPersonnel = nsfPersonnel.filter(e => e.userID.subdepartment === 'FM');
-    const C1C2NsfPersonnel = nsfPersonnel.filter(e => e.userID.subdepartment === 'C1 + C2');
-    const C3C4NsfPersonnel = nsfPersonnel.filter(e => e.userID.subdepartment === 'C3 + C4');
+    let C1C2NsfPersonnel;
+    let C3C4NsfPersonnel;
+    if(filteredDept === "ADS")
+    {
+      C1C2NsfPersonnel = nsfPersonnel.filter(e => e.userID.subdepartment === 'C1 + C2');
+      C3C4NsfPersonnel = nsfPersonnel.filter(e => e.userID.subdepartment === 'C3 + C4');
+    }
+    else{
+      C1C2NsfPersonnel = stgNsfPersonnel.filter(e => e.userID.subdepartment === 'C1 + C2');
+      C3C4NsfPersonnel = stgNsfPersonnel.filter(e => e.userID.subdepartment === 'C3 + C4');
+    
+    }
     const C1C2RegPersonnel = regPersonnel.filter(e => e.userID.subdepartment === 'C1 + C2');
     const C3C4RegPersonnel = regPersonnel.filter(e => e.userID.subdepartment === 'C3 + C4');
     const StgOfficer = nsfPersonnel.filter(e => 
@@ -54,11 +68,11 @@ const AttendancePage = () => {
     );    
     const amCount = deptList.filter(e => e.status === 'Present').length + deptList.filter(e => e.amAbsenceType === 'Present').length;
     const pmCount = deptList.filter(e => e.status === 'Present').length + deptList.filter(e => e.pmAbsenceType === 'Present').length;
-    const deptUsers = users.filter(u => u.department === department);
+    const deptUsers = users.filter(u => u.department === dept);
     const totalStrength = deptUsers.length;
+    console.log(dept);
+    console.log(users);
     console.log(filteredDept);
-    console.log(regPersonnel);
-
     return (
       <div>
       {filteredDept !== "ADS" && (
@@ -72,7 +86,8 @@ const AttendancePage = () => {
      
     
       <p><strong>Total NSF:</strong> {nsfPersonnel.length}</p>
-      {dept==="HQ" && (<div>
+      {dept==="HQ" && 
+      (<div>
       <div>
         <p><strong>Orderly</strong></p>
         {OrderlyNsfPersonnel.map((e, i) => {
@@ -179,7 +194,6 @@ const AttendancePage = () => {
 
       </div>
       </div>)}
-      
       {dept==="DMSP" && (<div>
       <div>
         <p><strong>Infra NSFs</strong></p>
@@ -655,7 +669,7 @@ const AttendancePage = () => {
 
       </div>
       </div>)}
-      {dept != "Storage" && <div>
+      {dept !== "Storage" && filteredDept !=="ADS" && <div>
         <p><strong>Total Reg:</strong> {regPersonnel.length}</p>
         {regPersonnel.map((e, i) => {
           let absenceDetails;
@@ -774,7 +788,7 @@ const AttendancePage = () => {
                 ? `${getAmOrPm()} Attendance for ${getDateString()}`
                 : `${filteredDept} Attendance for ${getDateString()}`}
             </h3>
-            {formatDeptAttendance(filteredList)}
+            {formatDeptAttendance(filteredList,filteredDept)}
           </div>
         )}
       </div>
